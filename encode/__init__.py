@@ -1,0 +1,1 @@
+"""Package for encoding NetFlow data collected from the Elastic Stack for the purpose of network anomaly detection."""

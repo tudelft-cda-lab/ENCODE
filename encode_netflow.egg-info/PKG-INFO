@@ -1,0 +1,13 @@
+Metadata-Version: 2.1
+Name: encode-netflow
+Version: 0.1.1
+Summary: Python package for encoding NetFlow data for use in machine learning. This package is meant to be used as a preprocessing step for machine learning algorithms.
+Home-page: https://github.com/tudelft-cda-lab/ENCODE
+Author: Clinton Cao
+Author-email: c.s.cao@tudelft.nl
+License: MIT
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.8
+License-File: LICENSE

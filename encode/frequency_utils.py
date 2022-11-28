@@ -14,7 +14,7 @@ def convert_symbols_to_percentiles(symbols_count, percentiles):
 			if e == 'N' or e == 'SELF':
 				converted_counts[s][e] = symbols_count[s][e]
 			else:
-				value_percentile = utils.find_percentile(e, percentiles)
+				value_percentile = find_percentile(e, percentiles)
 				converted_counts[s][value_percentile] += symbols_count[s][e]
 	
 	return converted_counts
@@ -33,7 +33,7 @@ def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed
 		converted_counts[i]['SELF'] = 0.0
 	
 	for s in timed_symbols_count:
-		percentile = utils.find_percentile(s, percentiles)
+		percentile = find_percentile(s, percentiles)
 		converted_counts[percentile] = dict()
 		
 		for i in range(len(timed_count_percentiles)):
@@ -46,7 +46,7 @@ def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed
 			if e == 'N' or e == 'SELF':
 				converted_counts[percentile][e] += timed_symbols_count[s][e]
 			else:
-				value_percentile = utils.find_percentile(e, timed_count_percentiles)
+				value_percentile = find_percentile(e, timed_count_percentiles)
 				converted_counts[percentile][value_percentile] += timed_symbols_count[s][e]
 
 	return converted_counts
@@ -70,7 +70,7 @@ def compute_next_counts(feature_data, feature, level, column_index_mapping):
 
 		if i + 1 < len(feature_data):
 			next_row = feature_data[i+1]
-			if utils.check_level(level, row, next_row, column_index_mapping):
+			if check_level(level, row, next_row, column_index_mapping):
 				next_symbols.append(next_row[column_index_mapping[feature]])
 				if value == next_row[column_index_mapping[feature]]:
 					next_counts[value]['SELF'] += 1.0
@@ -109,7 +109,7 @@ def compute_previous_counts(feature_data, feature, level, column_index_mapping):
 			continue
 		
 		previous_row = feature_data[i-1]
-		if utils.check_level(level, row, previous_row, column_index_mapping):
+		if check_level(level, row, previous_row, column_index_mapping):
 			previous_symbols.append(previous_row[column_index_mapping[feature]])
 			if value == previous_row[column_index_mapping[feature]]:
 				previous_counts[value]['SELF'] += 1.0
@@ -143,7 +143,7 @@ def compute_next_counts_timed(timed_feature_data, feature, level, threshold, col
 
 		if i + 1 < len(timed_feature_data):
 			next_row = timed_feature_data[i+1]
-			if utils.check_level(level, row, next_row, column_index_mapping):
+			if check_level(level, row, next_row, column_index_mapping):
 				next_symbols.append(next_row[column_index_mapping[feature]])
 				if abs(value - next_row[column_index_mapping[feature]]) <= threshold:
 					next_counts[value]['SELF'] += 1.0
@@ -183,7 +183,7 @@ def compute_previous_counts_timed(timed_feature_data, feature, level, threshold,
 			continue
 		
 		previous_row = timed_feature_data[i-1]
-		if utils.check_level(level, row, previous_row, column_index_mapping):
+		if check_level(level, row, previous_row, column_index_mapping):
 			previous_symbols.append(previous_row[column_index_mapping[feature]])
 			if abs(value - previous_row[column_index_mapping[feature]]) <= threshold:
 				previous_counts[value]['SELF'] += 1.0

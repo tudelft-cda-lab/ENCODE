@@ -1,4 +1,4 @@
-import utils
+from .utils import check_level, find_percentile
 
 def convert_symbols_to_percentiles(symbols_count, percentiles):
 	"""

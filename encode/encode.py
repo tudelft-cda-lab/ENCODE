@@ -105,9 +105,9 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 
 	if precomputed_matrix:
 		print('Using precomputed matrix...')
-		bytes_context_matrix = load_matrix('./bytes_context_matrix_' + level + '.csv')
-		packets_context_matrix = load_matrix('./packets_context_matrix_' + level + '.csv')
-		durations_context_matrix = load_matrix('./durations_context_matrix_' + level + '.csv')
+		bytes_context_matrix = load_matrix(output_folder + 'bytes_context_matrix_' + level + '.csv')
+		packets_context_matrix = load_matrix(output_folder + 'packets_context_matrix_' + level + '.csv')
+		durations_context_matrix = load_matrix(output_folder + 'durations_context_matrix_' + level + '.csv')
 	else:
 		print('Computing the matrices...')
 		bytes_context_matrix = compute_matrix(

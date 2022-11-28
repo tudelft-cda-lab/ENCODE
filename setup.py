@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='encode-netflow',
-    version='0.1.2',    
+    version='0.1.3',    
     description='Python package for encoding NetFlow data for use in machine learning. This package is meant to be used as a preprocessing step for machine learning algorithms.',
     url='https://github.com/tudelft-cda-lab/ENCODE',
     author='Clinton Cao',

@@ -30,7 +30,7 @@ def process_data(data, level, columns_mapping):
 
 	print('Computing frequency of the duration percentiles...')
 	raw_duration_to_percentiles = []
-	for d in data['_source_event_duration']:
+	for d in data[columns_mapping['duration']]:
 		raw_duration_to_percentiles.append(find_percentile(d, results['duration_percentiles']))
 
 	results['duration_percentiles_frequency'] = Counter(raw_duration_to_percentiles)

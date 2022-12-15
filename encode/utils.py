@@ -50,31 +50,16 @@ def check_level(level, this_row, other_row, column_index_mapping):
 		return True
 
 
-def write_encoding_to_file_for_int_features(encoding, feature_data, path):
+def write_encoding_to_file(encoding, path):
 	"""
-	Write the encoding of an integer feature to a CSV file.
-	This is used for features that have integer values.
+	Write the compute encoding to a CSV file.
 	"""
-	print('Writing encoding of integer feature to file...')
+	print('Writing encoding to file...')
 	with open(path, 'w') as output:
-			output.write('symbol,encoding\n')
-			for i in range(len(feature_data)):
-				output.write(str(feature_data[i]) + ',' + str(encoding[i]) + '\n')
+		output.write('symbol,encoding\n')
+		for val in range(encoding):
+			output.write(str(val) + ',' + str(encoding[val]) + '\n')
 
-def write_encoding_to_file_for_float_features(encoding, feature_data, percentiles, path):
-	"""
-	Write the encoding of a float feature to a CSV file.
-	This is used for the duration feature. (or any feature that uses float values)
-	"""
-	print('Writing encoding of float feature to file...')
-	with open(path, 'w') as output:
-			percentile_to_cluster_mapping = dict()
-			for i in range(len(percentiles)):
-				percentile_to_cluster_mapping[i] = encoding[i]
-
-			output.write('symbol,encoding\n')
-			for i in range(len(feature_data)):
-				output.write(str(feature_data[i]) + ',' + str(percentile_to_cluster_mapping[find_percentile(feature_data[i], percentiles)]) + '\n')
 
 def read_csv_file(path, column_names):
 	"""

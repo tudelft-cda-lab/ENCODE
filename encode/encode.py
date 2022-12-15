@@ -63,6 +63,9 @@ def process_data(data, level, columns_mapping):
 	return results
 
 def compute_matrix(unique_values, next_percentiles, previous_percentiles, next_counts, previous_counts, feature_frequencyies, path):
+	"""
+	Construct the co-occurrence matrix that we use to store the context of each unique feature value.
+	"""
 	matrix = compute_context_matrix(
 		unique_values, 
 		next_percentiles,
@@ -72,11 +75,17 @@ def compute_matrix(unique_values, next_percentiles, previous_percentiles, next_c
 		feature_frequencyies
 		)
 
-	write_matrix_to_file(matrix, path) # write matrix to file
+	write_matrix_to_file(matrix, path) # write matrix to file, might be handy for later
 	matrix.pop(0) # remove header
 	return [row[1:] for row in matrix] # we only use frequency values and not the actual symbols
 
 def cluster_matrix_rows(matrix, num_clusters, kmean_runs):
+	"""
+	Cluster the rows of the context matrix that we have created for a given feature. The cluster 
+	labels are used as the encoding for the feature values. We run K-Means multiple times as the 
+	initialisation of K-means is random. The best run of K-Means is the one with the highest
+	silhouette score.
+	"""
 	print('Preparing to cluster the rows of the matrix...')
 	best_cluster_results = []
 	best_cluster_score = -1337.0 # set the silhouette score to a large negative value (silhouette score is always in [-1, 1])
@@ -95,7 +104,31 @@ def cluster_matrix_rows(matrix, num_clusters, kmean_runs):
 	print('Done with clustering')
 	return best_cluster_results
 
+def create_encoding_mapping(unique_feature_values, cluster_labels, type='int', percentiles=None):
+	"""
+	Create a mapping from the unique feature values to the corresponding cluster labels. This is the encoding
+	that we use for the feature values.
+	"""
+	encoding_mapping = {}
+	if type == 'float' and percentiles is not None:
+		percentile_to_cluster_mapping = dict()
+		for i in range(len(percentiles)):
+				percentile_to_cluster_mapping[i] = cluster_labels[i]
+
+	for i in range(len(unique_feature_values)):
+		if type == 'int':
+			encoding_mapping[unique_feature_values[i]] = cluster_labels[i]
+		elif type == 'float':
+			encoding_mapping[unique_feature_values[i]] = percentile_to_cluster_mapping[find_percentile(unique_feature_values[i], percentiles)]
+		else:
+			raise ValueError('Unknown type: ' + type +'. Must be either "int" or "float".')
+
+	return encoding_mapping
+
 def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, bytes_context_matrix = None, packets_context_matrix = None, durations_context_matrix = None):
+	"""
+	Encoded the given NetFlow data.
+	"""
 	print('Reading and processing data...')
 	if data_path is not None:
 		data =  read_csv_file(data_path, columns_mapping.values())
@@ -140,12 +173,15 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 			output_folder + 'durations_context_matrix_' + level + '.csv',
 			)
 
-	bytes_encoding = cluster_matrix_rows(bytes_context_matrix, num_clusters, kmean_runs)
-	write_encoding_to_file_for_int_features(bytes_encoding, data_info['unique_bytes'], output_folder + 'bytes_encoding' + '_' + level + '.csv')
-	packets_encoding = cluster_matrix_rows(packets_context_matrix, num_clusters, kmean_runs)
-	write_encoding_to_file_for_int_features(packets_encoding, data_info['unique_packets'], output_folder + 'packets_encoding' + '_' + level + '.csv')
-	duration_encoding = cluster_matrix_rows(durations_context_matrix, 5, kmean_runs)
-	write_encoding_to_file_for_float_features(duration_encoding, data_info['unique_duration'],  data_info['duration_percentiles'], output_folder + 'duration_encoding' + '_' + level + '.csv')
+	bytes_cluster_results = cluster_matrix_rows(bytes_context_matrix, num_clusters, kmean_runs)
+	bytes_encoding = create_encoding_mapping(data_info['unique_bytes'], bytes_cluster_results, type='int')
+	write_encoding_to_file(bytes_encoding, output_folder + 'bytes_encoding' + '_' + level + '.csv')
+	packets_cluster_results = cluster_matrix_rows(packets_context_matrix, num_clusters, kmean_runs)
+	packets_encoding = create_encoding_mapping(data_info['unique_packets'], packets_cluster_results, type='int')
+	write_encoding_to_file(packets_encoding, output_folder + 'packets_encoding' + '_' + level + '.csv')
+	duration_cluster_results = cluster_matrix_rows(durations_context_matrix, 5, kmean_runs)
+	duration_encoding = create_encoding_mapping(data_info['unique_duration'], duration_cluster_results, type='float', percentiles=data_info['duration_percentiles'])
+	write_encoding_to_file(duration_encoding, output_folder + 'duration_encoding' + '_' + level + '.csv')
 
 	return bytes_encoding, packets_encoding, duration_encoding
 

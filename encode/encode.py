@@ -134,16 +134,17 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 		data =  read_csv_file(data_path, columns_mapping.values())
 	else:
 		data = data
+	
 	data_info = process_data(data, level, columns_mapping)
 
 	if precomputed_matrix:
 		if bytes_context_matrix_path is None or packets_context_matrix_path is None or durations_context_matrix_path is None:
 			raise ValueError('Must provide paths to the precomputed matrices if precomputed_matrix is set to True')
-			
+
 		print('Using precomputed matrix...')
-		bytes_context_matrix = load_matrix(bytes_context_matrix_path)
-		packets_context_matrix = load_matrix(packets_context_matrix_path)
-		durations_context_matrix = load_matrix(durations_context_matrix_path)
+		bytes_context_matrix, _ = load_matrix(bytes_context_matrix_path)
+		packets_context_matrix, _ = load_matrix(packets_context_matrix_path)
+		durations_context_matrix, _ = load_matrix(durations_context_matrix_path)
 	else:
 		print('Computing the matrices...')
 		bytes_context_matrix = compute_matrix(

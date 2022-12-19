@@ -125,7 +125,7 @@ def create_encoding_mapping(unique_feature_values, cluster_labels, type='int', p
 
 	return encoding_mapping
 
-def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, bytes_context_matrix = None, packets_context_matrix = None, durations_context_matrix = None):
+def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, bytes_context_matrix_path = None, packets_context_matrix_path = None, durations_context_matrix_path = None):
 	"""
 	Encoded the given NetFlow data.
 	"""
@@ -137,10 +137,13 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 	data_info = process_data(data, level, columns_mapping)
 
 	if precomputed_matrix:
+		if bytes_context_matrix_path is None or packets_context_matrix_path is None or durations_context_matrix_path is None:
+			raise ValueError('Must provide paths to the precomputed matrices if precomputed_matrix is set to True')
+			
 		print('Using precomputed matrix...')
-		bytes_context_matrix = load_matrix(output_folder + 'bytes_context_matrix_' + level + '.csv')
-		packets_context_matrix = load_matrix(output_folder + 'packets_context_matrix_' + level + '.csv')
-		durations_context_matrix = load_matrix(output_folder + 'durations_context_matrix_' + level + '.csv')
+		bytes_context_matrix = load_matrix(bytes_context_matrix_path)
+		packets_context_matrix = load_matrix(packets_context_matrix_path)
+		durations_context_matrix = load_matrix(durations_context_matrix_path)
 	else:
 		print('Computing the matrices...')
 		bytes_context_matrix = compute_matrix(
@@ -186,7 +189,7 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 	return bytes_encoding, packets_encoding, duration_encoding
 
 
-# Example on how to get use the encoding
+# Example on how to use the encoding
 # def main():
 # 	bytes_encoding, packets_encoding, duration_encoding = encode(
 # 		'elastic_data.csv',

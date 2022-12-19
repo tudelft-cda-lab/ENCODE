@@ -57,7 +57,7 @@ def write_encoding_to_file(encoding, path):
 	print('Writing encoding to file...')
 	with open(path, 'w') as output:
 		output.write('symbol,encoding\n')
-		for val in range(encoding):
+		for val in encoding:
 			output.write(str(val) + ',' + str(encoding[val]) + '\n')
 
 

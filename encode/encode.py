@@ -154,7 +154,7 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 			data_info['next_byte_counts'],
 			data_info['previous_byte_counts'],
 			data_info['unique_bytes_frequency'],
-			output_folder + 'bytes_context_maxtrix_' + level + '.csv',
+			output_folder + 'bytes_context_matrix_' + level + '.csv',
 			)
 
 		packets_context_matrix = compute_matrix(

@@ -129,7 +129,7 @@ def create_encoding_mapping_for_float_values(float_values, percentiles, cluster_
 	for i in range(len(float_values)):
 		encoding_mapping[float_values[i]] = percentile_to_cluster_mapping[find_percentile(float_values[i], percentiles)]
 
-	return percentile_to_cluster_mapping
+	return encoding_mapping
 
 def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, bytes_context_matrix_path = None, packets_context_matrix_path = None, durations_context_matrix_path = None):
 	"""

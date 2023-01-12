@@ -104,26 +104,32 @@ def cluster_matrix_rows(matrix, num_clusters, kmean_runs):
 	print('Done with clustering')
 	return best_cluster_results
 
-def create_encoding_mapping(unique_feature_values, cluster_labels, type='int', percentiles=None):
+def create_encoding_mapping_for_int_values(unique_feature_values, cluster_labels):
 	"""
-	Create a mapping from the unique feature values to the corresponding cluster labels. This is the encoding
+	Create a mapping from the (integer) unique feature values to the corresponding cluster labels. This is the encoding
 	that we use for the feature values.
 	"""
 	encoding_mapping = {}
-	if type == 'float' and percentiles is not None:
-		percentile_to_cluster_mapping = dict()
-		for i in range(len(percentiles)):
-				percentile_to_cluster_mapping[i] = cluster_labels[i]
-
 	for i in range(len(unique_feature_values)):
-		if type == 'int':
-			encoding_mapping[unique_feature_values[i]] = cluster_labels[i]
-		elif type == 'float':
-			encoding_mapping[unique_feature_values[i]] = percentile_to_cluster_mapping[find_percentile(unique_feature_values[i], percentiles)]
-		else:
-			raise ValueError('Unknown type: ' + type +'. Must be either "int" or "float".')
-
+		encoding_mapping[unique_feature_values[i]] = cluster_labels[i]
+	
 	return encoding_mapping
+
+
+def create_encoding_mapping_for_float_values(float_values, percentiles, cluster_labels):
+	"""
+	Create a mapping from the percentiles to the corresponding cluster labels. This is specifically used for float
+	values as we use percentiles for float values. This is the encoding that we use for the feature values.
+	"""
+	encoding_mapping = dict()
+	percentile_to_cluster_mapping = dict()
+	for i in range(len(percentiles)):
+			percentile_to_cluster_mapping[i] = cluster_labels[i]
+	
+	for i in range(len(float_values)):
+		encoding_mapping[float_values[i]] = percentile_to_cluster_mapping[find_percentile(float_values[i], percentiles)]
+
+	return percentile_to_cluster_mapping
 
 def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, bytes_context_matrix_path = None, packets_context_matrix_path = None, durations_context_matrix_path = None):
 	"""
@@ -145,6 +151,7 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 		bytes_context_matrix, _ = load_matrix(bytes_context_matrix_path)
 		packets_context_matrix, _ = load_matrix(packets_context_matrix_path)
 		durations_context_matrix, _ = load_matrix(durations_context_matrix_path)
+	
 	else:
 		print('Computing the matrices...')
 		bytes_context_matrix = compute_matrix(
@@ -178,13 +185,13 @@ def encode(columns_mapping, level='conn', kmean_runs=10, num_clusters=35, output
 			)
 
 	bytes_cluster_results = cluster_matrix_rows(bytes_context_matrix, num_clusters, kmean_runs)
-	bytes_encoding = create_encoding_mapping(data_info['unique_bytes'], bytes_cluster_results, type='int')
+	bytes_encoding = create_encoding_mapping_for_int_values(data_info['unique_bytes'], bytes_cluster_results)
 	write_encoding_to_file(bytes_encoding, output_folder + 'bytes_encoding' + '_' + level + '.csv')
 	packets_cluster_results = cluster_matrix_rows(packets_context_matrix, num_clusters, kmean_runs)
-	packets_encoding = create_encoding_mapping(data_info['unique_packets'], packets_cluster_results, type='int')
+	packets_encoding = create_encoding_mapping_for_int_values(data_info['unique_packets'], packets_cluster_results)
 	write_encoding_to_file(packets_encoding, output_folder + 'packets_encoding' + '_' + level + '.csv')
 	duration_cluster_results = cluster_matrix_rows(durations_context_matrix, 5, kmean_runs)
-	duration_encoding = create_encoding_mapping(data_info['unique_duration'], duration_cluster_results, type='float', percentiles=data_info['duration_percentiles'])
+	duration_encoding = create_encoding_mapping_for_float_values(data[columns_mapping['duration']], data_info['duration_percentiles'], duration_cluster_results)
 	write_encoding_to_file(duration_encoding, output_folder + 'duration_encoding' + '_' + level + '.csv')
 
 	return bytes_encoding, packets_encoding, duration_encoding

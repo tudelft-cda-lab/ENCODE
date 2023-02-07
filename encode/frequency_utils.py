@@ -11,8 +11,10 @@ def convert_symbols_to_percentiles(symbols_count, percentiles):
 		for i in range(len(percentiles)):
 			converted_counts[s][i] = 0.0
 		for e in symbols_count[s]:
-			if e == 'N' or e == 'SELF':
+			if e == 'SELF':
 				converted_counts[s][e] = symbols_count[s][e]
+				value_percentile = find_percentile(s, percentiles)
+				converted_counts[s][value_percentile] += symbols_count[s][e]
 			else:
 				value_percentile = find_percentile(e, percentiles)
 				converted_counts[s][value_percentile] += symbols_count[s][e]
@@ -29,7 +31,6 @@ def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed
 
 	for i in range(len(percentiles)):
 		converted_counts[i] = dict()
-		converted_counts[i]['N'] = 0.0
 		converted_counts[i]['SELF'] = 0.0
 	
 	for s in timed_symbols_count:
@@ -39,12 +40,13 @@ def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed
 		for i in range(len(timed_count_percentiles)):
 			converted_counts[percentile][i] = 0.0
 		
-		converted_counts[percentile]['N'] = 0.0
 		converted_counts[percentile]['SELF'] = 0.0
 		
 		for e in timed_symbols_count[s]:
-			if e == 'N' or e == 'SELF':
+			if e == 'SELF':
 				converted_counts[percentile][e] += timed_symbols_count[s][e]
+				value_percentile = find_percentile(s, timed_count_percentiles)
+				converted_counts[percentile][value_percentile] += timed_symbols_count[s][e]
 			else:
 				value_percentile = find_percentile(e, timed_count_percentiles)
 				converted_counts[percentile][value_percentile] += timed_symbols_count[s][e]
@@ -65,24 +67,20 @@ def compute_next_counts(feature_data, feature, level, column_index_mapping):
 
 		if value not in next_counts:
 			next_counts[value] = dict()
-			next_counts[value]['N'] = 0.0
 			next_counts[value]['SELF'] = 0.0
 
 		if i + 1 < len(feature_data):
 			next_row = feature_data[i+1]
 			if check_level(level, row, next_row, column_index_mapping):
 				next_symbols.append(next_row[column_index_mapping[feature]])
+				if next_row[column_index_mapping[feature]] not in next_counts[value]:
+					next_counts[value][next_row[column_index_mapping[feature]]] = 0.0
+				
 				if value == next_row[column_index_mapping[feature]]:
 					next_counts[value]['SELF'] += 1.0
-				else:
-					if next_row[column_index_mapping[feature]] not in next_counts[value]:
-						next_counts[value][next_row[column_index_mapping[feature]]] = 0.0
 
-					next_counts[value][next_row[column_index_mapping[feature]]] += 1.0
-			else:
-				next_counts[value]['N'] += 1.0
+				next_counts[value][next_row[column_index_mapping[feature]]] += 1.0
 		else:
-			next_counts[value]['N'] += 1.0
 			break;
 	
 	return next_counts, next_symbols
@@ -101,25 +99,14 @@ def compute_previous_counts(feature_data, feature, level, column_index_mapping):
 
 		if value not in previous_counts:
 			previous_counts[value] = dict()
-			previous_counts[value]['N'] = 0.0
-			previous_counts[value]['SELF'] = 0.0
-
-		if i == 0:
-			previous_counts[value]['N'] += 1.0
-			continue
 		
 		previous_row = feature_data[i-1]
 		if check_level(level, row, previous_row, column_index_mapping):
 			previous_symbols.append(previous_row[column_index_mapping[feature]])
-			if value == previous_row[column_index_mapping[feature]]:
-				previous_counts[value]['SELF'] += 1.0
-			else:
-				if previous_row[column_index_mapping[feature]] not in previous_counts[value]:
-					previous_counts[value][previous_row[column_index_mapping[feature]]] = 0.0
+			if previous_row[column_index_mapping[feature]] not in previous_counts[value]:
+				previous_counts[value][previous_row[column_index_mapping[feature]]] = 0.0
 
-				previous_counts[value][previous_row[column_index_mapping[feature]]] += 1.0
-		else:
-			previous_counts[value]['N'] += 1.0
+			previous_counts[value][previous_row[column_index_mapping[feature]]] += 1.0
 	
 	return previous_counts, previous_symbols
 
@@ -138,7 +125,6 @@ def compute_next_counts_timed(timed_feature_data, feature, level, threshold, col
 
 		if value not in next_counts:
 			next_counts[value] = dict()
-			next_counts[value]['N'] = 0.0
 			next_counts[value]['SELF'] = 0.0
 
 		if i + 1 < len(timed_feature_data):
@@ -152,10 +138,7 @@ def compute_next_counts_timed(timed_feature_data, feature, level, threshold, col
 						next_counts[value][next_row[column_index_mapping[feature]]] = 0.0
 
 					next_counts[value][next_row[column_index_mapping[feature]]] += 1.0
-			else:
-				next_counts[value]['N'] += 1.0
 		else:
-			next_counts[value]['N'] += 1.0
 			break;
 	
 	return next_counts, next_symbols
@@ -175,12 +158,7 @@ def compute_previous_counts_timed(timed_feature_data, feature, level, threshold,
 
 		if value not in previous_counts:
 			previous_counts[value] = dict()
-			previous_counts[value]['N'] = 0.0
 			previous_counts[value]['SELF'] = 0.0
-
-		if i == 0:
-			previous_counts[value]['N'] += 1.0
-			continue
 		
 		previous_row = timed_feature_data[i-1]
 		if check_level(level, row, previous_row, column_index_mapping):
@@ -192,7 +170,5 @@ def compute_previous_counts_timed(timed_feature_data, feature, level, threshold,
 						previous_counts[value][previous_row[column_index_mapping[feature]]] = 0.0
 
 				previous_counts[value][previous_row[column_index_mapping[feature]]] += 1.0
-		else:
-			previous_counts[value]['N'] += 1.0
 	
 	return previous_counts, previous_symbols

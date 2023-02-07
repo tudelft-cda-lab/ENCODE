@@ -61,16 +61,17 @@ def write_encoding_to_file(encoding, path):
 			output.write(str(val) + ',' + str(encoding[val]) + '\n')
 
 
-def read_csv_file(path, column_names):
+def read_csv_file(path, columns):
 	"""
-	Reads a CSV file and returns a dataframe contain only data from the specified columns.
-	We assume that the CSV follows the same format that was collected from the Elastic stack.
-	It is possible to use other format as well, as long as the NetFlow data is stored as in
-	the CSV format.
+	Reads a CSV file containing NetFlow data and return the data as a DataFrame object. We assume 
+	that the CSV follows the same format that was collected from the Elastic stack as the 
+	algorithm was initially developer for data collected from the Elastic stack.It is possible 
+	to use other format as well, as long as the NetFlow data is stored as in the CSV format.
+	To reduce memory usage, we only use the columns that are specified in the columns parameter.
 	"""
 	data = pd.read_csv(path, delimiter=',')
 	data = data.dropna()
-	data = data[column_names]
+	data = data[columns]
 	return data
 
 def write_matrix_to_file(matrix, path):
@@ -92,3 +93,13 @@ def find_column_index_mapping(columns_mapping, column_names):
 		column_index_mapping[f] = column_names.index(columns_mapping[f])
 	
 	return column_index_mapping
+
+
+def get_feature_type(feature_name, data):
+	element = data[feature_name][0]
+	if isinstance(element, int):
+		return 'int'
+	elif isinstance(element, float):
+		return 'float'
+	else:
+		raise ValueError('We currently only support do not support features of type string.')

@@ -14,12 +14,9 @@ def compute_row(feature_value, next_counts, previous_counts, row_length, next_of
 	row[0] = str(int(feature_value))
 	row[1] = math.log(feature_frequency + 1)
 	row[2] = next_counts[feature_value]['SELF']
-	row[3] = next_counts[feature_value]['N']
 	for i in range(0, len(next_counts[feature_value]) - 2):
 		row[next_offset + i] = next_counts[feature_value][i]
 
-	row[4] = previous_counts[feature_value]['SELF']
-	row[5] = previous_counts[feature_value]['N']
 	for i in range(0, len(previous_counts[feature_value]) - 2):
 		row[previous_offset + i] = previous_counts[feature_value][i]
 
@@ -32,11 +29,8 @@ def compute_context_matrix(unique_feature_values, next_percentiles, previous_per
 	matrix = []
 	column = ['symbol']
 	column.append('log_frequency')
-	column.append('self_next')
-	column.append('next_nothing')
-	column.append('self_previous')
-	column.append('previous_nothing')
-	next_offset = 6
+	column.append('self_ref')
+	next_offset = 3
 	previous_offset = next_offset + len(next_percentiles)
 
 	# for the next percentiles (header)

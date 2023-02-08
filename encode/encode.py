@@ -6,7 +6,7 @@ from .matrix_operations import compute_context_matrix, load_matrix
 from .utils import *
 from .frequency_utils import *
 
-def process_data(data, level, feature, feature_type, time_host_column_mapping):
+def process_data(data, level, feature, time_feature, time_host_column_mapping):
 	"""
 	Precompute all the necessary data for creating the encoding.
 	"""
@@ -16,10 +16,12 @@ def process_data(data, level, feature, feature_type, time_host_column_mapping):
 
 	print('Computing the unique values of the given feature...')
 	results['unique_' + feature] = sorted(data[feature].unique())
-	results['unique_' + feature + '_frequency'] = Counter(data[feature])
 
-	if feature_type == 'float':
-		print('Feature is of type float, computing percentiles...')
+	if not time_feature:
+		results['unique_' + feature + '_frequency'] = Counter(data[feature])
+
+	if time_feature:
+		print('Feature is a time feature, computing percentiles...')
 		results[feature + '_percentiles'] = compute_percentiles(data[feature], 5, 105, 5)
 
 		print('Computing frequency of the percentiles...')
@@ -27,7 +29,7 @@ def process_data(data, level, feature, feature_type, time_host_column_mapping):
 		for d in data[feature]:
 			raw_duration_to_percentiles.append(find_percentile(d, results[feature + '_percentiles']))
 
-		results[feature + '_frequency'] = Counter(raw_duration_to_percentiles)
+		results['percentile_frequency'] = Counter(raw_duration_to_percentiles)
 
 	# Computing the mapping a column name to its index in the DataFrame.
 	# The indices are used for the computation of the context matrix.
@@ -37,20 +39,20 @@ def process_data(data, level, feature, feature_type, time_host_column_mapping):
 	
 	print('Computing the counts of the next and previous symbols...')
 	data_np = data.to_numpy()
-	if feature_type == 'int':
+	if not time_feature:
 		next_counts, next_symbols = compute_next_counts(data_np, feature, level, column_index_mapping)
 		results['next_' + feature + '_percentiles'] = compute_percentiles(next_symbols, 10, 110, 10)
 		results['next_' + feature + '_counts'] = convert_symbols_to_percentiles(next_counts, results['next_' + feature + '_percentiles'])
 		previous_counts, previous_symbols = compute_previous_counts(data_np, feature, level, column_index_mapping)
 		results['previous_' + feature + '_percentiles'] = compute_percentiles(previous_symbols, 10, 110, 10)
 		results['previous_' + feature + '_counts'] = convert_symbols_to_percentiles(previous_counts, results['previous_' + feature + '_percentiles'])
-	elif feature_type == 'float': 
+	elif time_feature: 
 		next_counts, next_symbols = compute_next_counts_timed(data_np, feature, level, 0.5, column_index_mapping)
 		results['next_' + feature + '_percentiles'] = compute_percentiles(next_symbols, 10, 110, 10)
-		results['next_' + feature  + '_counts'] = convert_symbols_to_percentiles_timed(next_counts, results[feature + '_percentiles'], results['next_' + feature + '_percentiles'])
-		previous_counts, previous_symbols = compute_previous_counts_timed(data_np, feature, level, 0.5, column_index_mapping)
+		results['next_' + feature  + '_counts'] = convert_symbols_to_percentiles_timed(next_counts, results[feature + '_percentiles'], results['next_' + feature + '_percentiles'], True)
+		previous_counts, previous_symbols = compute_previous_counts_timed(data_np, feature, level, column_index_mapping)
 		results['previous_' + feature + '_percentiles'] = compute_percentiles(previous_symbols, 10, 110, 10)
-		results['previous_' + feature + '_counts'] = convert_symbols_to_percentiles_timed(previous_counts, results[feature + '_percentiles'], results['previous_' + feature + '_percentiles'])
+		results['previous_' + feature + '_counts'] = convert_symbols_to_percentiles_timed(previous_counts, results[feature + '_percentiles'], results['previous_' + feature + '_percentiles'], False)
 
 	return results
 
@@ -123,7 +125,7 @@ def create_encoding_mapping_for_float_values(float_values, percentiles, cluster_
 
 	return encoding_mapping
 
-def encode(feature, time_host_column_mapping, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, context_matrix_path=None):
+def encode(feature, time_host_column_mapping, time_feature=False, level='conn', kmean_runs=10, num_clusters=35, output_folder='./', data_path=None, data=None, precomputed_matrix=False, context_matrix_path=None):
 	"""
 	Encode a given feature of the NetFlow data.
 	"""
@@ -133,8 +135,7 @@ def encode(feature, time_host_column_mapping, level='conn', kmean_runs=10, num_c
 	else:
 		data = data
 	
-	feature_type = get_feature_type(feature, data)
-	data_info = process_data(data, level, feature, feature_type, time_host_column_mapping)
+	data_info = process_data(data, level, feature, time_feature, time_host_column_mapping)
 
 	if precomputed_matrix:
 		if context_matrix_path is None:
@@ -145,22 +146,32 @@ def encode(feature, time_host_column_mapping, level='conn', kmean_runs=10, num_c
 		
 	else:
 		print('Computing the matrices...')
-		print(data_info['previous_' + feature + '_counts'])
-		context_matrix = compute_matrix(
-			data_info['unique_' + feature],
-			data_info['next_' + feature + '_percentiles'],
-			data_info['previous_' + feature + '_percentiles'],
-			data_info['next_' + feature + '_counts'],
-			data_info['previous_' + feature + '_counts'],
-			data_info['unique_' + feature + '_frequency'],
-			output_folder + feature + '_context_matrix_' + level + '.csv',
-		)
+		if not time_feature:
+			context_matrix = compute_matrix(
+				data_info['unique_' + feature],
+				data_info['next_' + feature + '_percentiles'],
+				data_info['previous_' + feature + '_percentiles'],
+				data_info['next_' + feature + '_counts'],
+				data_info['previous_' + feature + '_counts'],
+				data_info['unique_' + feature + '_frequency'],
+				output_folder + feature + '_context_matrix_' + level + '.csv',
+			)
+		else:
+			context_matrix = compute_matrix(
+				[x for x in range(20)],
+				data_info['next_' + feature + '_percentiles'],
+				data_info['previous_' + feature + '_percentiles'],
+				data_info['next_' + feature + '_counts'],
+				data_info['previous_' + feature + '_counts'],
+				data_info['percentile_frequency'],
+				output_folder + feature + '_context_matrix_' + level + '.csv',
+			)
 
-	if feature_type == 'int':
+	if not time_feature:
 		cluster_results = cluster_matrix_rows(context_matrix, num_clusters, kmean_runs)
 		feature_encoding = create_encoding_mapping_for_int_values(data_info['unique_' + feature], cluster_results)
 		write_encoding_to_file(feature_encoding, output_folder + feature + '_encoding' + '_' + level + '.csv')
-	elif feature_type == 'float':
+	else:
 		cluster_results = cluster_matrix_rows(context_matrix, 5, kmean_runs)
 		feature_encoding = create_encoding_mapping_for_float_values(data[feature], data_info[feature + '_percentiles'], cluster_results)
 		write_encoding_to_file(feature_encoding, output_folder + feature + '_encoding' + '_' + level + '.csv')

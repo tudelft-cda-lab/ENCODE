@@ -16,12 +16,9 @@ def compute_row(feature_value, next_counts, previous_counts, row_length, next_of
 	row[2] = next_counts[feature_value]['SELF']
 	# we use the len(next_counts[feature]) - 1 because we already added the self reference count above
 	for i in range(0, len(next_counts[feature_value]) - 1):
-		print(next_counts[feature_value][i])
 		row[next_offset + i] = next_counts[feature_value][i]
 
-	print('PREVIOUS')
-	print(feature_value)
-	print(previous_counts[feature_value])
+	# we don't have a self reference count for the previous counts, therefor we caan iterate over the whole list
 	for i in range(0, len(previous_counts[feature_value])):
 		row[previous_offset + i] = previous_counts[feature_value][i]
 

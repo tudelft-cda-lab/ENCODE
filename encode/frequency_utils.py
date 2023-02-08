@@ -20,16 +20,22 @@ def convert_symbols_to_percentiles(symbols_count, percentiles):
 	return converted_counts
 
 
-def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed_count_percentiles):
+def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed_count_percentiles, self=False):
 	"""
 	This function is same as convert_symbols_to_percentiles, except that this is used 
 	for time features (e.g. duration).
 	"""
 	converted_counts = dict()
-
 	for i in range(len(percentiles)):
 		converted_counts[i] = dict()
-		converted_counts[i]['SELF'] = 0.0
+
+		# Because we are working with time feature, some percentiles would be end up with no values.
+		# Therefore we need to instantiate some of the values.
+		for j in range(len(timed_count_percentiles)):
+			converted_counts[i][j] = 0.0
+		
+		if self:
+			converted_counts[i]['SELF'] = 0.0
 	
 	for s in timed_symbols_count:
 		percentile = find_percentile(s, percentiles)
@@ -37,16 +43,14 @@ def convert_symbols_to_percentiles_timed(timed_symbols_count, percentiles, timed
 		
 		for i in range(len(timed_count_percentiles)):
 			converted_counts[percentile][i] = 0.0
-		
-		converted_counts[percentile]['SELF'] = 0.0
-		
+				
 		for e in timed_symbols_count[s]:
 			if e == 'SELF':
-				converted_counts[percentile][e] += timed_symbols_count[s][e]
+				converted_counts[percentile][e] = timed_symbols_count[s][e]
 			else:
 				value_percentile = find_percentile(e, timed_count_percentiles)
 				converted_counts[percentile][value_percentile] += timed_symbols_count[s][e]
-
+				
 	return converted_counts
 
 
@@ -145,7 +149,7 @@ def compute_next_counts_timed(timed_feature_data, feature, level, threshold, col
 	return next_counts, next_symbols
 
 
-def compute_previous_counts_timed(timed_feature_data, feature, level, threshold, column_index_mapping):
+def compute_previous_counts_timed(timed_feature_data, feature, level, column_index_mapping):
 	"""
 	This function is almost same as compute_previous_counts, except that this is
 	for time features (e.g. duration).

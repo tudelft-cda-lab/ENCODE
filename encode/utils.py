@@ -97,9 +97,9 @@ def find_column_index_mapping(columns_mapping, column_names):
 
 def get_feature_type(feature_name, data):
 	element = data[feature_name][0]
-	if isinstance(element, int):
+	if isinstance(element.item(), int):
 		return 'int'
-	elif isinstance(element, float):
+	elif isinstance(element.item(), float):
 		return 'float'
 	else:
 		raise ValueError('We currently only support do not support features of type string.')

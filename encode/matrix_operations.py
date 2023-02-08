@@ -12,12 +12,17 @@ def compute_row(feature_value, next_counts, previous_counts, row_length, next_of
 	'''
 	row = np.zeros(row_length).tolist()
 	row[0] = str(int(feature_value))
-	row[1] = math.log(feature_frequency + 1)
+	row[1] = math.log(feature_frequency + 1, 10)
 	row[2] = next_counts[feature_value]['SELF']
-	for i in range(0, len(next_counts[feature_value]) - 2):
+	# we use the len(next_counts[feature]) - 1 because we already added the self reference count above
+	for i in range(0, len(next_counts[feature_value]) - 1):
+		print(next_counts[feature_value][i])
 		row[next_offset + i] = next_counts[feature_value][i]
 
-	for i in range(0, len(previous_counts[feature_value]) - 2):
+	print('PREVIOUS')
+	print(feature_value)
+	print(previous_counts[feature_value])
+	for i in range(0, len(previous_counts[feature_value])):
 		row[previous_offset + i] = previous_counts[feature_value][i]
 
 	return row

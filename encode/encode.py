@@ -29,7 +29,11 @@ def process_data(data, level, feature, feature_type, time_host_column_mapping):
 
 		results[feature + '_frequency'] = Counter(raw_duration_to_percentiles)
 
-	column_index_mapping = find_column_index_mapping(time_host_column_mapping, data.columns.tolist())
+	# Computing the mapping a column name to its index in the DataFrame.
+	# The indices are used for the computation of the context matrix.
+	columns = data.columns.tolist()
+	column_index_mapping = find_column_index_mapping(time_host_column_mapping, columns)
+	column_index_mapping[feature] = columns.index(feature)
 	
 	print('Computing the counts of the next and previous symbols...')
 	data_np = data.to_numpy()
@@ -125,7 +129,7 @@ def encode(feature, time_host_column_mapping, level='conn', kmean_runs=10, num_c
 	"""
 	print('Reading and processing data...')
 	if data_path is not None and data is None:
-		data =  read_csv_file(data_path, time_host_column_mapping.values() + [feature])
+		data =  read_csv_file(data_path, list(time_host_column_mapping.values()) + [feature])
 	else:
 		data = data
 	
@@ -141,6 +145,7 @@ def encode(feature, time_host_column_mapping, level='conn', kmean_runs=10, num_c
 		
 	else:
 		print('Computing the matrices...')
+		print(data_info['previous_' + feature + '_counts'])
 		context_matrix = compute_matrix(
 			data_info['unique_' + feature],
 			data_info['next_' + feature + '_percentiles'],

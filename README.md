@@ -34,10 +34,10 @@ To encode arbitrary (semi-)continuous NetFlow feature data, you need to first im
 -  `sorting_level`: How the feature data should be sorted to learn the encoding. Currently, ENCODE supports sorting on four levels: `conn` for sorting on the connection level, `src` for sorting on the source-host level, `ts` for sorting on the timestamp level, and `dst` for sorting on the destination-host level. By default, ENCODE sorts on the connection level.
 - `kmeans_runs`: The number of times KMeans should be run to cluster the computed rows in the co-occurrence matrix. By default, ENCODE runs KMeans 10 times.
 - `num_clusters`: The number of clusters KMeans should use to cluster the computed rows in the co-occurrence matrix. By default, ENCODE uses 35 clusters.
-- `output_folder`: The folder where the outputs of ENCODE are stoerd. By default, ENCODE stores its output in the current working directory.
-- `data_path`: The path to the NetFlow data file. Currently, ENCODE only support NetFlow data stored in CSV format. The NetFlow must contain at least the following features: the timestamps of the NetFlows, the source and destination IP addresses, and the feature you want to learn an encoding for. These column names must match the name given in the `time_host_column_mapping` and `feature` parameters. 
+- `output_folder`: The folder where the outputs of ENCODE are stored. By default, ENCODE stores its output in the current working directory.
+- `data_path`: The path to the NetFlow data file. Currently, ENCODE only supports NetFlow data stored in CSV format. The NetFlow must contain at least the following features: the timestamps of the NetFlows, the source and destination IP addresses, and the feature you want to learn an encoding for. These column names must match the name given in the `time_host_column_mapping` and `feature` parameters. 
 
-ENCODE also accepts a DataFrame as input instead of a path. In this case, you can ignore the `data_path` parameter and use the `data` parameter instead. Additionally, to save some computation time, you also use co-occurrence matrix computed from a previous run of ENCODE. To do so, you need to use the `precomputed_matrix=True` parameter and also specify where the precomputed matrix is stored using the `context_matrix_path` parameter. Do note that you should **only use** the `precomputed_matrix=True` parameter if you are using the same exact sample of NetFlow data as the previous run of ENCODE. Otherwise, the learned encoding might not be representative of the (new) NetFlow data.
+ENCODE also accepts a DataFrame as input instead of a path. In this case, you can ignore the `data_path` parameter and use the `data` parameter instead. Additionally, to save some computation time, you also use the co-occurrence matrix computed from a previous run of ENCODE. To do so, you need to use the `precomputed_matrix=True` parameter and also specify where the precomputed matrix is stored using the `context_matrix_path` parameter. Do note that ***you should only use*** the `precomputed_matrix=True` parameter if you are using the same exact sample of NetFlow data as the previous run of ENCODE. Otherwise, the learned encoding might not be representative of the (new) NetFlow data.
 
 The snippet below shows an example of how to use the `encode` function to learn an encoding for the `_source_network_bytes` feature:
 ```python
@@ -48,10 +48,10 @@ bytes_encoding = encode(
  		{'timestamp': '_source_@timestamp', 'src_ip':'_source_source_ip', 'dst_ip':'_source_destination_ip'},
  		'conn',
  		10,
- 		35, 		
-        './',
+ 		35,
+		'./',
 		'PATH/TO/NETFLOW/DATA.csv',
- 	)
+	)
 ```
 
 The resulting encoding is stored as a dictionary, where the keys are the unique feature values and the values are the cluster assignments. 
@@ -70,6 +70,6 @@ If you use ENCODE in your research, please cite the following paper:
 ```
 
 ## Contact
-If you have any questions, feel free to drop me an email. My email address is listed on GitHub page.
+If you have any questions, feel free to drop me an email. My email address is listed on my GitHub profile page.
 
 

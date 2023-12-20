@@ -41,7 +41,7 @@ ENCODE also accepts a DataFrame as input instead of a path. In this case, you ca
 
 The snippet below shows an example of how to use the `encode` function to learn an encoding for the `_source_network_bytes` feature:
 ```python
-from encode.encode import encode
+from encode import encode
 
 bytes_encoding = encode(
  		'_source_network_bytes',
@@ -49,7 +49,7 @@ bytes_encoding = encode(
  		'conn',
  		10,
  		35, 		
-        './',
+            './',
 		'PATH/TO/NETFLOW/DATA.csv',
  	)
 ```

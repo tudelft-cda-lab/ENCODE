@@ -1,9 +1,14 @@
 from setuptools import setup
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 setup(
     name='encode-netflow',
-    version='0.2.0',    
-    description='Python package for encoding NetFlow data for use in machine learning. This package is meant to be used as a preprocessing step for machine learning algorithms.',
+    version='0.2.1',    
+    description='A python package for learning contextual features from (semi-)continuous NetFlow feature data, with the aim to improve machine learning models for network anomaly detection.',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     url='https://github.com/tudelft-cda-lab/ENCODE',
     author='Clinton Cao',
     author_email='c.s.cao@tudelft.nl',

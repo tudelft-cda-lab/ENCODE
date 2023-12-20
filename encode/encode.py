@@ -2,9 +2,9 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from tqdm import tqdm
 from collections import Counter
-from .matrix_operations import compute_context_matrix, load_matrix
-from .utils import *
-from .frequency_utils import *
+from encode.matrix_operations import compute_context_matrix, load_matrix
+from encode.utils import *
+from encode.frequency_utils import *
 
 def process_data(data, level, feature, time_feature, time_host_column_mapping):
 	"""
